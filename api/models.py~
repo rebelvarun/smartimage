@@ -1,0 +1,49 @@
+import uuid
+import random 
+import string
+import datetime
+
+from django.db import models
+from django.conf import settings 
+
+HEARTBEAT_TIMEOUT_SECONDS = 60
+
+
+def generate_udid():
+    return uuid.uuid1().hex
+    
+def generate_code():
+    code = ''.join(random.choice(string.ascii_uppercase) for x in range(3))
+    return code
+
+class Device(models.Model):
+    udid = models.CharField(max_length=100, unique=True, db_index=True,
+        default=generate_udid)
+    code = models.CharField(max_length=30, unique=True, db_index=True,
+        help_text='code should be ALLCAPS', default=generate_code)
+    relay_server = models.CharField(max_length=2000,
+        default=settings.RELAY_SERVER)
+    private_ip = models.IPAddressField()
+    public_ip = models.IPAddressField()
+    last_updated = models.DateTimeField(auto_now=True)
+    jsonData = models.CharField(max_length=256, default='{}')
+    fb_uid = models.CharField(max_length=100, blank=True)
+    
+    def __unicode__(self):
+        return self.udid    
+    
+    class Meta:
+        get_latest_by = 'last_updated'
+        ordering = ['-last_updated']
+        
+
+    def heartbeat_is_valid(self):
+        '''
+        Return false if the heartbeat is older than a certain time interval
+        '''
+        if (datetime.datetime.now() - self.last_updated) > \
+            datetime.timedelta(seconds=HEARTBEAT_TIMEOUT_SECONDS):
+            return False
+        else:
+            return True
+        

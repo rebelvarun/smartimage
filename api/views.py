@@ -1,0 +1,25 @@
+try: import simplejson as json
+except ImportError: import json
+import datetime
+import requests
+import subprocess
+from django.http import HttpResponse, HttpResponseBadRequest,\
+    HttpResponseServerError, HttpResponseNotFound
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.safestring import mark_safe
+#All relay servers prior to the heartbeat logic would be assigned BASE_JS_VERSION of 1
+
+def resize(request):
+    '''
+    Return Device information based on UDID or code
+    '''
+    try:
+	height = request.GET.get('height')
+	width = request.GET.get('width')	    
+	watermark = request.GET.get('watermark')
+	source = request.GET.get('source')
+	subprocess.call(["convert" , "a.png" , "resize" , "40x40" , "a.jpg" ])
+    except Exception as e:
+	print "Error occurred"
+
+    return HttpResponse("success")
